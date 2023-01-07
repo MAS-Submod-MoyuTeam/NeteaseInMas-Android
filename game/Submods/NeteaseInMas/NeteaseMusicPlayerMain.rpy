@@ -30,6 +30,10 @@ init -5 python in np_globals:
     if not os.path.exists(FFmpegexe) and renpy.android:
         open(FFmpegexe, "wb").write(renpy.file("ffmpeg").read())
         os.chmod(FFmpegexe, stat.S_IRWXU)
+    if renpy.android:
+        for item in [Catch, FFmpegDir,Basedir + "/game/Submods/NeteaseInMas/Cookies"]:
+            if not os.path.exists(item)
+            os.makedirs(item)
     VerifyPath = True
     CookiesPath = Basedir + "/game/Submods/NeteaseInMas/Cookies/cookies.json"
 
