@@ -26,7 +26,7 @@ init -5 python in np_globals:
     Catch = Basedir + "/game/Submods/NeteaseInMas/Catch"
     FFmpegDir = "/data/data/and.kne.masmobile/files/game"
     FFmpegexe = FFmpegDir + "/ffmpeg"
-    if not os.path.exists(FFmpegexe):
+    if not os.path.exists(FFmpegexe) and renpy.android:
         open(FFmpegexe, "wb").write(renpy.file("ffmpeg").read())
         os.chmod(FFmpegexe, stat.S_IRWXU)
     VerifyPath = True
@@ -740,8 +740,8 @@ init -900 python:
         pass
     
     # 签名fix
-    import os
-    os.environ['REQUESTS_CA_BUNDLE'] = renpy.config.basedir + "/game/python-packages/certifi/cacert.pem"
+    #import os
+    #os.environ['REQUESTS_CA_BUNDLE'] = renpy.config.basedir + "/game/python-packages/certifi/cacert.pem"
     
 
 label np_emptylabel():
