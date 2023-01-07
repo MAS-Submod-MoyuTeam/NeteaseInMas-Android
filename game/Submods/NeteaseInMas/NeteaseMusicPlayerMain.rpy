@@ -17,6 +17,7 @@ init -100:
 init -5 python in np_globals:
     import store
     import os
+    import stat
     if os.path.exists(renpy.config.basedir + "/game/Submods/NeteaseInMas/debug.np"):
         debug=True
     else:
@@ -568,7 +569,7 @@ init python in np_util:
         """
         列出缓存文件列表
         """
-        dirs = os.listdir(np_globals.Catch)
+        dirs = os.listdir(np_globals.Catch) if renpy.android else []
         catched = []
         for file_name in dirs:
             for types in ["mp3", "wav"]:
