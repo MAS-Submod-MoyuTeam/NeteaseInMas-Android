@@ -656,7 +656,7 @@ init python in np_util:
             if os.path.exists(song):
                 with open(song, 'rb') as file:
                     sounddata = file.read()
-                    musictest = renpy.audio.audio.AudioData(sounddata, filepath)
+                    musictest = renpy.audio.audio.AudioData(sounddata, song)
                     renpy.music.play(
                         musictest,
                         channel="music",
