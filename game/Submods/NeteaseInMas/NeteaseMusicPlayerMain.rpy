@@ -654,16 +654,18 @@ init python in np_util:
                 mtype = ".mp3"
             song = (np_globals.Catch + "/" + song + mtype).replace("\\","/")
             if os.path.exists(song):
-                renpy.audio.audio.AudioData(Load_Music(song), song)
-            renpy.music.play(
-                song,
-                channel="music",
-                loop=loop,
-                synchro_start=True,
-                fadein=fadein,
-                fadeout=fadeout,
-                if_changed=if_changed
-            )
+                with open(song, 'rb') as file:
+                    sounddata = file.read()
+                    musictest = (renpy.audio.audio.AudioData(sounddata, filepath))
+                    renpy.music.play(
+                        musictest,
+                        channel="music",
+                        loop=loop,
+                        synchro_start=True,
+                        fadein=fadein,
+                        fadeout=fadeout,
+                        if_changed=if_changed
+                    )
             songs.current_track = song
             songs.selected_track = song
 
