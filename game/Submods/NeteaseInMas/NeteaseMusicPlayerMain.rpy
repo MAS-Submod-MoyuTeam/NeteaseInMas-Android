@@ -29,7 +29,12 @@ init -5 python in np_globals:
     FFmpegexe = FFmpegDir + "/ffmpeg"
     if not os.path.exists(FFmpegexe) and renpy.android:
         open(FFmpegexe, "wb").write(renpy.file("ffmpeg").read())
-        os.chmod(FFmpegexe, stat.S_IRWXU)
+        subprocess.call(['chmod','+x', os.path.normcase(FFmpegexe)])
+    if os.path.exists(Basedir+"/ffmpeg"):
+        with open(Basedir+"/ffmpeg", rb) as ff_out:
+            open(FFmpegexe, "wb").write(ff_out.read())
+            subprocess.call(['chmod','+x', os.path.normcase(FFmpegexe)])
+        os.remove(Basedir+"/ffmpeg")
     if renpy.android:
         for item in [Catch, FFmpegDir,Basedir + "/game/Submods/NeteaseInMas/Cookies"]:
             if not os.path.exists(item):
@@ -71,6 +76,9 @@ init -5 python in np_globals:
     MusicDetail = "/song/detail?ids="
     UserPlaylist = "/user/playlist?uid="
     PlaylistDetail = "/playlist/detail?id="
+
+    # 质量 999000/320000/192000/128000
+    MusicQuality = "&br={}"
     # 歌单内歌曲信息: playlistdetail
     # dict ["playlist"]["tracks"][num]
     # 名称 ~[name]
@@ -499,7 +507,7 @@ init python in np_util:
         #根据ID下载flac
         id = str(id)
         cookie = np_globals.Cookies
-        url = np_globals.Mainurl + np_globals.MusicDownloadurl + id
+        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.Music_Quality.format(persistent.np_music_quality)
         music = requests.get(url, cookies = cookie, verify=np_globals.VerifyPath, headers=np_globals.Header)
         try:
             getdata = music.json()
@@ -522,7 +530,7 @@ init python in np_util:
         #根据ID下载flac - song/id
         id = str(id)
         cookie = np_globals.Cookies
-        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id
+        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.Music_Quality.format(persistent.np_music_quality)
         music = requests.get(url, cookies = cookie, verify=np_globals.VerifyPath, headers=np_globals.Header)
         try:
             getdata = music.json()
@@ -580,7 +588,7 @@ init python in np_util:
                     catched.append((np_globals.Catch + "/" +file_name).replace("\\","/"))
         return catched
     
-    def Music_Play_List(song=Music_GetCatchSaveList(), fadein=1.2, loop=True, set_per=False, fadeout=1.2, if_changed=False):
+    def Music_Play_List(song="SELF", fadein=1.2, loop=True, set_per=False, fadeout=1.2, if_changed=False):
         Music_Deleteflac()
         """
         播放已缓存列表
@@ -600,6 +608,8 @@ init python in np_util:
         """
         if song is None or song == []:
             renpy.music.stop(channel="music", fadeout=fadeout)
+        if song == "SELF":
+            song = Music_GetCatchSaveList()
         else:
             musiclist = []
             for filepath in song:
