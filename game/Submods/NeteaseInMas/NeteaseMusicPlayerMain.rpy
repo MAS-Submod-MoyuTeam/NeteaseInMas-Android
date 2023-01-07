@@ -12,6 +12,8 @@ init -100:
     default persistent._NP_search_limit = "50"
     default persistent.np_restart_song = None
 
+    
+
 init -5 python in np_globals:
     import store
     import os
@@ -20,10 +22,13 @@ init -5 python in np_globals:
     else:
         debug=False
 
-    Basedir = renpy.config.basedir
+    Basedir = "/storage/emulated/0/MAS"#renpy.config.basedir
     Catch = Basedir + "/game/Submods/NeteaseInMas/Catch"
-    FFmpegDir =  Basedir + "/game/Submods/NeteaseInMas/ffmpeg/win32/usr/bin"
+    FFmpegDir = "/data/data/and.kne.masmobile/files/game"
     FFmpegexe = FFmpegDir + "/ffmpeg"
+    if not os.path.exists(FFmpegexe):
+        open(FFmpegexe, "wb").write(renpy.file("ffmpeg").read())
+        os.chmod(FFmpegexe, stat.S_IRWXU)
     VerifyPath = True
     CookiesPath = Basedir + "/game/Submods/NeteaseInMas/Cookies/cookies.json"
 
@@ -119,35 +124,35 @@ init -5 python in np_globals:
     version = None
 
 init 5 python in np_globals:
-    def change_api(api):
-        global Mainurl
-        if api == "":
-            Mainurl = "http://neteaseapi.0721play.icu"
-        elif api[-1] == "/":
-            Mainurl = api[:-1]
-        else:
-            Mainurl = api
-        try:
-            if store.np_util.Check_API_Available():
-                return True, Mainurl
-            else:
-                Mainurl = "http://neteaseapi.0721play.icu"
-                store.np_util.Check_API_Available()
-                return False, "粘贴的API链接错误！将使用默认值！查看submod_log获取详细信息"
-        except Exception as e:
-            Mainurl = "http://neteaseapi.0721play.icu"
-            store.mas_submod_utils.submod_log.error(e)
-            return False, "粘贴的API链接错误！将使用默认值！查看submod_log获取详细信息"
-        #return True, Mainurl
-    store.mas_registerAPIKey(
-        "netease_apiurl",
-        "网易云音乐 - APIurl",
-        on_change=change_api
-    )
-    if store.mas_getAPIKey("netease_apiurl") != "":
-        Mainurl = store.mas_getAPIKey("netease_apiurl")
-    else:
-        Mainurl = "http://neteaseapi.0721play.icu"
+    #def change_api(api):
+    #    global Mainurl
+    #    if api == "":
+    #        Mainurl = "http://neteaseapi.0721play.icu"
+    #    elif api[-1] == "/":
+    #        Mainurl = api[:-1]
+    #    else:
+    #        Mainurl = api
+    #    try:
+    #        if store.np_util.Check_API_Available():
+    #            return True, Mainurl
+    #        else:
+    #            Mainurl = "http://neteaseapi.0721play.icu"
+    #            store.np_util.Check_API_Available()
+    #            return False, "粘贴的API链接错误！将使用默认值！查看submod_log获取详细信息"
+    #    except Exception as e:
+    #        Mainurl = "http://neteaseapi.0721play.icu"
+    #        store.mas_submod_utils.submod_log.error(e)
+    #        return False, "粘贴的API链接错误！将使用默认值！查看submod_log获取详细信息"
+    #    #return True, Mainurl
+    #store.mas_registerAPIKey(
+    #    "netease_apiurl",
+    #    "网易云音乐 - APIurl",
+    #    on_change=change_api
+    #)
+    #if store.mas_getAPIKey("netease_apiurl") != "":
+    #    Mainurl = store.mas_getAPIKey("netease_apiurl")
+    #else:
+    Mainurl = "http://neteaseapi.0721play.icu"
 
 init python in np_util:
     import json
@@ -569,6 +574,8 @@ init python in np_util:
             for types in ["mp3", "wav"]:
                 if file_name.find(types) != -1:
                     catched.append((np_globals.Catch + "/" +file_name).replace("\\","/"))
+                    with open(np_globals.Catch + "/" +file_name, 'rb') as file:
+                        renpy.audio.audio.AudioData(file.read(), file_name)
         return catched
     
     def Music_Play_List(song=Music_GetCatchSaveList(), fadein=1.2, loop=True, set_per=False, fadeout=1.2, if_changed=False):
@@ -639,6 +646,9 @@ init python in np_util:
             else:
                 mtype = ".mp3"
             song = (np_globals.Catch + "/" + song + mtype).replace("\\","/")
+            if os.path.exists(song):
+                with open(song, 'rb') as file:
+                    renpy.audio.audio.AudioData(file.read(), song)
             renpy.music.play(
                 song,
                 channel="music",
