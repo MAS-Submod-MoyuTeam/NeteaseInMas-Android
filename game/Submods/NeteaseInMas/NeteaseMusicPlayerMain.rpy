@@ -176,7 +176,6 @@ init python in np_util:
     import time
     from store.mas_submod_utils import submod_log
 
-    
     def Save_Cookies(cookies):
         """
         保存Cookies
@@ -579,8 +578,6 @@ init python in np_util:
             for types in ["mp3", "wav"]:
                 if file_name.find(types) != -1:
                     catched.append((np_globals.Catch + "/" +file_name).replace("\\","/"))
-                    with open(np_globals.Catch + "/" +file_name, 'rb') as file:
-                        renpy.audio.audio.AudioData(file.read(), file_name)
         return catched
     
     def Music_Play_List(song=Music_GetCatchSaveList(), fadein=1.2, loop=True, set_per=False, fadeout=1.2, if_changed=False):
@@ -604,8 +601,13 @@ init python in np_util:
         if song is None or song == []:
             renpy.music.stop(channel="music", fadeout=fadeout)
         else:
+            musiclist = []
+            for filepath in song:
+                with open(filepath, 'rb') as file:
+                    sounddata = file.read()
+                    musiclist.append(renpy.audio.audio.AudioData(sounddata, filepath))
             renpy.music.play(
-                song,
+                musiclist,
                 channel="music",
                 loop=loop,
                 synchro_start=True,
@@ -652,8 +654,7 @@ init python in np_util:
                 mtype = ".mp3"
             song = (np_globals.Catch + "/" + song + mtype).replace("\\","/")
             if os.path.exists(song):
-                with open(song, 'rb') as file:
-                    renpy.audio.audio.AudioData(file.read(), song)
+                renpy.audio.audio.AudioData(Load_Music(song), song)
             renpy.music.play(
                 song,
                 channel="music",
