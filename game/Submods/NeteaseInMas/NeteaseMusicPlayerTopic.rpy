@@ -166,10 +166,11 @@ label np_play_musicid:
                         FAILED = True
                         break
                     renpy.say(m, "第[retry]次重试...{w=0.5}{nw}")
-                elif not os.path.exists(np_globals.Catch + "/" + np_globals.Music_Id + ".wav"):
-                    FAILED = True
-                    break
+
                 else:
+                    if not os.path.exists(np_globals.Catch + "/" + np_globals.Music_Id + ".wav") and not os.path.exists(np_globals.Catch + "/" + np_globals.Music_Id + ".mp3"):
+                        FAILED = True
+                        break
                     np_util.Music_Play(np_globals.Music_Id)
                     break
         if FAILED:
