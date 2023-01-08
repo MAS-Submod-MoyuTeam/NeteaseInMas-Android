@@ -793,5 +793,5 @@ init 950 python:
             except Exception as e:
                 store.mas_submod_utils.submod_log.error("播放文件失败：{}".format(e))
 
-    # 在preloop label注册来实现自启播放
+    # 该种方式会导致极大性能消耗，需要找其他办法
     #store.mas_submod_utils.registerFunction('ch30_preloop', np_start_play)
