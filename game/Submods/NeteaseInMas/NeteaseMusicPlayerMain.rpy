@@ -222,6 +222,7 @@ init python in np_util:
         try:
             os.remove(np_globals.CookiesPath)
         except:
+            submod_log.error("删除Cookies失败：{}".format(e))
             pass
 
     def Check_API_Available():
@@ -507,11 +508,12 @@ init python in np_util:
         #根据ID下载flac
         id = str(id)
         cookie = np_globals.Cookies
-        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.Music_Quality.format(persistent.np_music_quality)
+        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.MusicQuality.format(persistent.np_music_quality)
         music = requests.get(url, cookies = cookie, verify=np_globals.VerifyPath, headers=np_globals.Header)
         try:
             getdata = music.json()
-        except Exception:
+        except Exception as e:
+            submod_log.error("获取音乐下载链接失败：{}".format(e))
             return False
         file_url = getdata["data"]["url"]
         np_globals.Music_Size = getdata['data']['size']
@@ -530,11 +532,12 @@ init python in np_util:
         #根据ID下载flac - song/id
         id = str(id)
         cookie = np_globals.Cookies
-        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.Music_Quality.format(persistent.np_music_quality)
+        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.MusicQuality.format(persistent.np_music_quality)
         music = requests.get(url, cookies = cookie, verify=np_globals.VerifyPath, headers=np_globals.Header)
         try:
             getdata = music.json()
-        except Exception:
+        except Exception as e:
+            submod_log.error("获取音乐下载链接失败：{}".format(e))
             return False
         file_url = getdata["data"][0]["url"]
         np_globals.Music_Size = getdata['data'][0]['size']

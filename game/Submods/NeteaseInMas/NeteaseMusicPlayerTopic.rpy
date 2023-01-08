@@ -320,13 +320,13 @@ label np_show_setting:
             menu:
                 "当前：[persistent.np_music_quality]"
                 "128000/标准":
-                    persistent.np_music_quality = 128000
+                    $ persistent.np_music_quality = 128000
                 "192000/较高":
-                    persistent.np_music_quality = 192000
+                    $ persistent.np_music_quality = 192000
                 "320000/极高":
-                    persistent.np_music_quality = 320000
+                    $ persistent.np_music_quality = 320000
                 "999000/无损(可能返回flac格式)":
-                    persistent.np_music_quality = 999000
+                    $ persistent.np_music_quality = 999000
 
 
         "算了":
