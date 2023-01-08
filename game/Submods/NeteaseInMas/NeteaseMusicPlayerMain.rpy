@@ -794,4 +794,4 @@ init 950 python:
                 store.mas_submod_utils.submod_log.error("播放文件失败：{}".format(e))
 
     # 在preloop label注册来实现自启播放
-    store.mas_submod_utils.registerFunction('ch30_preloop', np_start_play)
+    #store.mas_submod_utils.registerFunction('ch30_preloop', np_start_play)
