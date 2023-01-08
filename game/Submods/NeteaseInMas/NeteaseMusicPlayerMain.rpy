@@ -508,7 +508,7 @@ init python in np_util:
         #根据ID下载flac
         id = str(id)
         cookie = np_globals.Cookies
-        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.MusicQuality.format(persistent.np_music_quality)
+        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.MusicQuality.format(store.persistent.np_music_quality)
         music = requests.get(url, cookies = cookie, verify=np_globals.VerifyPath, headers=np_globals.Header)
         try:
             getdata = music.json()
@@ -532,7 +532,7 @@ init python in np_util:
         #根据ID下载flac - song/id
         id = str(id)
         cookie = np_globals.Cookies
-        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.MusicQuality.format(persistent.np_music_quality)
+        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.MusicQuality.format(store.persistent.np_music_quality)
         music = requests.get(url, cookies = cookie, verify=np_globals.VerifyPath, headers=np_globals.Header)
         try:
             getdata = music.json()
