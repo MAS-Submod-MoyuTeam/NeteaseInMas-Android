@@ -33,7 +33,7 @@ init 5 python:
         )
 label np_loop:
     $ hide_extra_screen()
-    $ np_util.Music_Play_List()
+    $ np_util.Music_Play_List(np_util.Music_GetCatchSaveList())
     m "ok"
     return
 
