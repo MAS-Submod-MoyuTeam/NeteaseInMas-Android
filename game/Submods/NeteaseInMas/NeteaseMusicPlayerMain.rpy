@@ -13,18 +13,33 @@ init -100:
     default persistent.np_restart_song = None
     default persistent._np_force_playlist = None
 
+    
+
 init -5 python in np_globals:
     import store
     import os
+    import stat
     if os.path.exists(renpy.config.basedir + "/game/Submods/NeteaseInMas/debug.np"):
         debug=True
     else:
         debug=False
 
-    Basedir = renpy.config.basedir
+    Basedir = "/storage/emulated/0/MAS"#renpy.config.basedir
     Catch = Basedir + "/game/Submods/NeteaseInMas/Catch"
-    FFmpegDir =  Basedir + "/game/Submods/NeteaseInMas/ffmpeg/win32/usr/bin"
+    FFmpegDir = "/data/data/and.kne.masmobile/files/game"
     FFmpegexe = FFmpegDir + "/ffmpeg"
+    if not os.path.exists(FFmpegexe) and renpy.android:
+        open(FFmpegexe, "wb").write(renpy.file("ffmpeg").read())
+        subprocess.call(['chmod','+x', os.path.normcase(FFmpegexe)])
+    if os.path.exists(Basedir+"/ffmpeg"):
+        with open(Basedir+"/ffmpeg", rb) as ff_out:
+            open(FFmpegexe, "wb").write(ff_out.read())
+            subprocess.call(['chmod','+x', os.path.normcase(FFmpegexe)])
+        os.remove(Basedir+"/ffmpeg")
+    if renpy.android:
+        for item in [Catch, FFmpegDir,Basedir + "/game/Submods/NeteaseInMas/Cookies"]:
+            if not os.path.exists(item):
+                os.makedirs(item)
     VerifyPath = True
     CookiesPath = Basedir + "/game/Submods/NeteaseInMas/Cookies/cookies.json"
 
@@ -62,6 +77,9 @@ init -5 python in np_globals:
     MusicDetail = "/song/detail?ids="
     UserPlaylist = "/user/playlist?uid="
     PlaylistDetail = "/playlist/detail?id="
+
+    # 质量 999000/320000/192000/128000
+    MusicQuality = "&br={}"
     # 歌单内歌曲信息: playlistdetail
     # dict ["playlist"]["tracks"][num]
     # 名称 ~[name]
@@ -120,35 +138,35 @@ init -5 python in np_globals:
     version = None
 
 init 5 python in np_globals:
-    def change_api(api):
-        global Mainurl
-        if api == "":
-            Mainurl = "http://neteaseapi.0721play.icu"
-        elif api[-1] == "/":
-            Mainurl = api[:-1]
-        else:
-            Mainurl = api
-        try:
-            if store.np_util.Check_API_Available():
-                return True, Mainurl
-            else:
-                Mainurl = "http://neteaseapi.0721play.icu"
-                store.np_util.Check_API_Available()
-                return False, "粘贴的API链接错误！将使用默认值！查看submod_log获取详细信息"
-        except Exception as e:
-            Mainurl = "http://neteaseapi.0721play.icu"
-            store.mas_submod_utils.submod_log.error(e)
-            return False, "粘贴的API链接错误！将使用默认值！查看submod_log获取详细信息"
-        #return True, Mainurl
-    store.mas_registerAPIKey(
-        "netease_apiurl",
-        "网易云音乐 - APIurl",
-        on_change=change_api
-    )
-    if store.mas_getAPIKey("netease_apiurl") != "":
-        Mainurl = store.mas_getAPIKey("netease_apiurl")
-    else:
-        Mainurl = "http://neteaseapi.0721play.icu"
+    #def change_api(api):
+    #    global Mainurl
+    #    if api == "":
+    #        Mainurl = "http://neteaseapi.0721play.icu"
+    #    elif api[-1] == "/":
+    #        Mainurl = api[:-1]
+    #    else:
+    #        Mainurl = api
+    #    try:
+    #        if store.np_util.Check_API_Available():
+    #            return True, Mainurl
+    #        else:
+    #            Mainurl = "http://neteaseapi.0721play.icu"
+    #            store.np_util.Check_API_Available()
+    #            return False, "粘贴的API链接错误！将使用默认值！查看submod_log获取详细信息"
+    #    except Exception as e:
+    #        Mainurl = "http://neteaseapi.0721play.icu"
+    #        store.mas_submod_utils.submod_log.error(e)
+    #        return False, "粘贴的API链接错误！将使用默认值！查看submod_log获取详细信息"
+    #    #return True, Mainurl
+    #store.mas_registerAPIKey(
+    #    "netease_apiurl",
+    #    "网易云音乐 - APIurl",
+    #    on_change=change_api
+    #)
+    #if store.mas_getAPIKey("netease_apiurl") != "":
+    #    Mainurl = store.mas_getAPIKey("netease_apiurl")
+    #else:
+    Mainurl = "http://neteaseapi.0721play.icu"
 
 init python in np_util:
     import json
@@ -167,7 +185,6 @@ init python in np_util:
     import time
     from store.mas_submod_utils import submod_log
 
-    
     def Save_Cookies(cookies):
         """
         保存Cookies
@@ -206,6 +223,7 @@ init python in np_util:
         try:
             os.remove(np_globals.CookiesPath)
         except:
+            submod_log.error("删除Cookies失败：{}".format(e))
             pass
 
     def Check_API_Available():
@@ -500,11 +518,12 @@ init python in np_util:
         #根据ID下载flac
         id = str(id)
         cookie = np_globals.Cookies
-        url = np_globals.Mainurl + np_globals.MusicDownloadurl + id
+        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.MusicQuality.format(store.persistent.np_music_quality)
         music = requests.get(url, cookies = cookie, verify=np_globals.VerifyPath, headers=np_globals.Header)
         try:
             getdata = music.json()
-        except Exception:
+        except Exception as e:
+            submod_log.error("获取音乐下载链接失败：{}".format(e))
             return False
         file_url = getdata["data"]["url"]
         np_globals.Music_Size = getdata['data']['size']
@@ -523,11 +542,12 @@ init python in np_util:
         #根据ID下载flac - song/id
         id = str(id)
         cookie = np_globals.Cookies
-        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id
+        url = np_globals.Mainurl + np_globals.MusicDownloadurl2 + id + np_globals.MusicQuality.format(store.persistent.np_music_quality)
         music = requests.get(url, cookies = cookie, verify=np_globals.VerifyPath, headers=np_globals.Header)
         try:
             getdata = music.json()
-        except Exception:
+        except Exception as e:
+            submod_log.error("获取音乐下载链接失败：{}".format(e))
             return False
         file_url = getdata["data"][0]["url"]
         np_globals.Music_Size = getdata['data'][0]['size']
@@ -573,7 +593,7 @@ init python in np_util:
         """
         列出缓存文件列表
         """
-        dirs = os.listdir(np_globals.Catch)
+        dirs = os.listdir(np_globals.Catch) if renpy.android else []
         catched = []
         for file_name in dirs:
             for types in ["mp3", "wav"]:
@@ -581,7 +601,7 @@ init python in np_util:
                     catched.append((np_globals.Catch + "/" +file_name).replace("\\","/"))
         return catched
     
-    def Music_Play_List(song=Music_GetCatchSaveList(), fadein=1.2, loop=True, set_per=False, fadeout=1.2, if_changed=False):
+    def Music_Play_List(song="SELF", fadein=1.2, loop=True, set_per=False, fadeout=1.2, if_changed=False):
         Music_Deleteflac()
         """
         播放已缓存列表
@@ -601,9 +621,16 @@ init python in np_util:
         """
         if song is None or song == []:
             renpy.music.stop(channel="music", fadeout=fadeout)
+        if song == "SELF":
+            song = Music_GetCatchSaveList()
         else:
+            musiclist = []
+            for filepath in song:
+                with open(filepath, 'rb') as file:
+                    sounddata = file.read()
+                    musiclist.append(renpy.audio.audio.AudioData(sounddata, filepath))
             renpy.music.play(
-                song,
+                musiclist,
                 channel="music",
                 loop=loop,
                 synchro_start=True,
@@ -649,15 +676,19 @@ init python in np_util:
             else:
                 mtype = ".mp3"
             song = (np_globals.Catch + "/" + song + mtype).replace("\\","/")
-            renpy.music.play(
-                song,
-                channel="music",
-                loop=loop,
-                synchro_start=True,
-                fadein=fadein,
-                fadeout=fadeout,
-                if_changed=if_changed
-            )
+            if os.path.exists(song):
+                with open(song, 'rb') as file:
+                    sounddata = file.read()
+                    musictest = renpy.audio.audio.AudioData(sounddata, song)
+                    renpy.music.play(
+                        musictest,
+                        channel="music",
+                        loop=loop,
+                        synchro_start=True,
+                        fadein=fadein,
+                        fadeout=fadeout,
+                        if_changed=if_changed
+                    )
             songs.current_track = song
             songs.selected_track = song
 
@@ -740,8 +771,8 @@ init -900 python:
         pass
     
     # 签名fix
-    import os
-    os.environ['REQUESTS_CA_BUNDLE'] = renpy.config.basedir + "/game/python-packages/certifi/cacert.pem"
+    #import os
+    #os.environ['REQUESTS_CA_BUNDLE'] = renpy.config.basedir + "/game/python-packages/certifi/cacert.pem"
     
 
 label np_emptylabel():
@@ -772,5 +803,5 @@ init 950 python:
             except Exception as e:
                 store.mas_submod_utils.submod_log.error("播放文件失败：{}".format(e))
 
-    # 在preloop label注册来实现自启播放
-    store.mas_submod_utils.registerFunction('ch30_preloop', np_start_play)
+    # 该种方式会导致极大性能消耗，需要找其他办法
+    #store.mas_submod_utils.registerFunction('ch30_preloop', np_start_play)

@@ -6,6 +6,7 @@ define NP_CONMODE_MP3 = 1
 define NP_CONMODE_WAV = 2
 default persistent.np_start_loopplay = False
 default persistent._np_downtimeout = 100
+default persistent.np_music_quality = 320000
 init 5 python:
     addEvent(
             Event(
@@ -32,7 +33,7 @@ init 5 python:
         )
 label np_loop:
     $ hide_extra_screen()
-    $ np_util.Music_Play_List()
+    $ np_util.Music_Play_List(np_util.Music_GetCatchSaveList())
     m "ok"
     return
 
@@ -165,7 +166,11 @@ label np_play_musicid:
                         FAILED = True
                         break
                     renpy.say(m, "第[retry]次重试...{w=0.5}{nw}")
+
                 else:
+                    if not os.path.exists(np_globals.Catch + "/" + np_globals.Music_Id + ".wav") and not os.path.exists(np_globals.Catch + "/" + np_globals.Music_Id + ".mp3"):
+                        FAILED = True
+                        break
                     np_util.Music_Play(np_globals.Music_Id)
                     break
         if FAILED:
@@ -309,6 +314,7 @@ label np_show_setting:
                     $ persistent.np_start_loopplay = True
                 "禁用":
                     $ persistent.np_start_loopplay = False
+
         "手动设置我喜欢歌单id":
             "目前仅能使用二维码正常登录, 但我太懒，不想做，而且手机端也无法进行扫码"
             "你可以在这里设置我喜欢歌单使用的id, id可以在网页端登陆后，查看链接参数即可"
@@ -325,6 +331,23 @@ label np_show_setting:
                         np_util.Music_Login_Status()
                     return
                 
+        "码率":
+            "手机版FFmpeg可能无法正常调用，所以用控制码率来尽量保证返回为mp3格式"
+            "如果你找到可以在手机上使用的FFmpeg二进制可执行文件，可以放到/storage/emulated/0/MAS文件夹下，并以ffmpeg命名（全小写）"
+            "重启游戏后会自动替换FFmpeg文件"
+            menu:
+                "当前：[persistent.np_music_quality]"
+                "128000/标准":
+                    $ persistent.np_music_quality = 128000
+                "192000/较高":
+                    $ persistent.np_music_quality = 192000
+                "320000/极高":
+                    $ persistent.np_music_quality = 320000
+                "999000/无损(可能返回flac格式)":
+                    $ persistent.np_music_quality = 999000
+
+
+
         "算了":
             return
     
